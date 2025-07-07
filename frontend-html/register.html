@@ -1,93 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register | E-commerce API Tester</title>
   <style>
-  body {
-    font-family: sans-serif;
-    background: #f9f9f9;
-    padding: 2rem;
-    max-width: 600px;
-    margin: auto;
-  }
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
 
-  h2 {
-    text-align: center;
-    margin-bottom: 1rem;
-  }
+    h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
 
-  form {
-    background: #fff;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
+    form {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+    }
 
-  input, select {
-    display: block;
-    width: 100%;
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
+    input, select {
+      display: block;
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
 
-  button {
-    background: #007bff;
-    color: #fff;
-    border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 0.5rem;
-  }
+    button {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
 
-  button:hover {
-    background: #0056b3;
-  }
+    button:hover {
+      background: #0056b3;
+    }
 
-  .back-button {
-    background-color: transparent;
-    color: blue;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    padding: 5px;
-  }
+    .back-button {
+      background-color: transparent;
+      color: blue;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      padding: 5px;
+      cursor: pointer;
+    }
 
-  .back-button:hover {
-    background: rgb(241, 245, 255);
-  }
+    .back-button:hover {
+      background: rgb(241, 245, 255);
+    }
 
-  .entry {
-    background: #fff;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  }
-</style>
+    #responseBox {
+      font-family: monospace;
+      background: #1e1e1e;
+      color: #00ff66;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      margin-top: 1rem;
+      box-shadow: inset 0 0 6px rgba(0,255,0,0.2);
+    }
+  </style>
 </head>
 
-<button class="back-button" onclick="window.location.href='index.html'">⬅ Back to Home</button>
+<body>
+  <h2>Register</h2>
 
-<form id="registerForm">
-  <input type="text" placeholder="Name" required />
-  <input type="email" placeholder="Email" required />
-  <input type="password" placeholder="Password" required />
-  <select>
-    <option value="customer">Customer</option>
-    <option value="admin">Admin</option>
-  </select>
-  <button type="submit">Register</button>
-</form>
+  <button class="back-button" onclick="window.location.href='index.html'">⬅ Back to Home</button>
 
-<script>
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const [name, email, password, role] = [...e.target].map(el => el.value);
+  <form id="registerForm">
+    <input type="text" placeholder="Name" required />
+    <input type="email" placeholder="Email" required />
+    <input type="password" placeholder="Password" required />
+    <select required>
+      <option value="">Select role</option>
+      <option value="customer">Customer</option>
+      <option value="admin">Admin</option>
+    </select>
+    <button type="submit">Register</button>
+  </form>
 
-  await fetch('http://localhost:5000/auth/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, password, role })
-  });
-  alert("Registered!");
-});
-</script>
+  <pre id="responseBox">Awaiting registration...</pre>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('registerForm');
+      const responseBox = document.getElementById('responseBox');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = form.elements[0].value;
+        const email = form.elements[1].value;
+        const password = form.elements[2].value;
+        const role = form.elements[3].value;
+
+        responseBox.textContent = '⌛ Registering...';
+
+        try {
+          const res = await fetch('https://adaptnxt-ecommerce.onrender.com/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, role })
+          });
+
+          const data = await res.json();
+
+          responseBox.textContent = res.ok
+            ? `✅ Registration successful!\nWelcome, ${data.name || name}`
+            : `❌ Failed: ${data.message || 'Invalid input'}`;
+        } catch (err) {
+          responseBox.textContent = `⚠️ Error:\n${err.message}`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

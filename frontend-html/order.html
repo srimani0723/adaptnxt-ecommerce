@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Order Page</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orders | E-commerce API Tester</title>
   <style>
     body {
       font-family: sans-serif;
       background: #f9f9f9;
       padding: 2rem;
-      max-width: 600px;
+      max-width: 700px;
       margin: auto;
     }
 
@@ -16,13 +18,25 @@
       margin-bottom: 1rem;
     }
 
-    input, select {
-      display: block;
-      width: 100%;
+    .order-box {
+      background: #fff;
+      padding: 1rem;
       margin-bottom: 1rem;
-      padding: 0.5rem;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    }
+
+    .order-box h3 {
+      margin: 0 0 0.5rem;
+    }
+
+    .order-box ul {
+      margin-top: 0.5rem;
+      padding-left: 1rem;
+    }
+
+    .order-box li {
+      font-size: 0.9rem;
     }
 
     button {
@@ -45,73 +59,92 @@
       font-weight: bold;
       margin-bottom: 1rem;
       padding: 5px;
+      cursor: pointer;
     }
 
     .back-button:hover {
       background: rgb(241, 245, 255);
     }
 
-    .entry {
-      background: #fff;
+    #responseBox {
+      font-family: monospace;
+      background: #1e1e1e;
+      color: #00ff66;
       padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    }
-
-    .order-box h3 {
-      margin: 0 0 0.5rem;
-    }
-
-    .order-box ul {
-      margin-top: 0.5rem;
-      padding-left: 1rem;
-    }
-
-    .order-box li {
-      font-size: 0.9rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      margin-top: 1rem;
+      box-shadow: inset 0 0 6px rgba(0,255,0,0.2);
     }
   </style>
 </head>
+
 <body>
-  <h2>Place a New Order</h2>
+  <h2>Your Orders</h2>
 
   <button class="back-button" onclick="window.location.href='index.html'">⬅ Back to Home</button>
 
-  <div id="orderList"></div>
+  <div id="ordersContainer">Loading previous orders...</div>
 
-  <button onclick="placeOrder()">Place Order</button>
+  <button onclick="placeOrder()">Place New Order</button>
+
+  <pre id="responseBox">Ready to place new order.</pre>
 
   <script>
-    const token = localStorage.getItem('token');
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('token');
+      const ordersContainer = document.getElementById('ordersContainer');
+      const responseBox = document.getElementById('responseBox');
 
-    async function placeOrder() {
-      await fetch('http://localhost:5000/orders', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      alert('Order placed!');
-      loadOrders(); // reload orders
-    }
+      async function loadOrders() {
+        responseBox.textContent = '⌛ Loading orders...';
+        try {
+          const res = await fetch('https://adaptnxt-ecommerce.onrender.com/orders', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const data = await res.json();
 
-    async function loadOrders() {
-      const res = await fetch('http://localhost:5000/orders', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const orders = await res.json();
-      const orderList = document.getElementById('orderList');
-      orderList.innerHTML = '<h3>Previous Orders</h3>' + orders.map(o => `
-        <div class="entry order-box">
-          <strong>Status:</strong> ${o.status}<br/>
-          <strong>Total:</strong> ₹${o.totalAmount}
-          <ul>
-            ${o.items.map(i => `<li>${i.product.name} × ${i.quantity}</li>`).join('')}
-          </ul>
-        </div>
-      `).join('');
-    }
+          if (!data.length) {
+            ordersContainer.innerHTML = `<p>No orders found.</p>`;
+            responseBox.textContent = `🗂️ You have not placed any orders yet.`;
+            return;
+          }
 
-    loadOrders();
+          ordersContainer.innerHTML = data.map(o => `
+            <div class="order-box">
+              <h3>Status: ${o.status}</h3>
+              <strong>Total:</strong> ₹${o.totalAmount}<br/>
+              <ul>
+                ${o.items.map(i => `<li>${i.product.name} × ${i.quantity}</li>`).join('')}
+              </ul>
+            </div>
+          `).join('');
+
+          responseBox.textContent = `✅ Loaded ${data.length} orders.`;
+        } catch (err) {
+          responseBox.textContent = `⚠️ Error loading orders:\n${err.message}`;
+        }
+      }
+
+      window.placeOrder = async () => {
+        responseBox.textContent = '⌛ Placing your order...';
+        try {
+          const res = await fetch('https://adaptnxt-ecommerce.onrender.com/orders', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const data = await res.json();
+          responseBox.textContent = res.ok
+            ? `✅ Order placed! Status: ${data.status}`
+            : `❌ Failed to place order: ${data.message || 'Unknown error'}`;
+          loadOrders(); // refresh orders
+        } catch (err) {
+          responseBox.textContent = `⚠️ Error placing order:\n${err.message}`;
+        }
+      };
+
+      loadOrders();
+    });
   </script>
 </body>
 </html>

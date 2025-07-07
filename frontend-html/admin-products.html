@@ -1,95 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Product Manager</title>
   <style>
-  body {
-    font-family: sans-serif;
-    background: #f9f9f9;
-    padding: 2rem;
-    max-width: 600px;
-    margin: auto;
-  }
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
 
-  h2 {
-    text-align: center;
-    margin-bottom: 1rem;
-  }
+    h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
 
-  form {
-    background: #fff;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
+    form {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+    }
 
-  input, select {
-    display: block;
-    width: 100%;
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
+    input, select {
+      display: block;
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
 
-  button {
-    background: #007bff;
-    color: #fff;
-    border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 0.5rem;
-  }
+    button {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
 
-  button:hover {
-    background: #0056b3;
-  }
+    button:hover {
+      background: #0056b3;
+    }
 
-  .back-button {
-    background-color: transparent;
-    color: blue;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    padding: 5px;
-  }
+    .back-button {
+      background-color: transparent;
+      color: blue;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      padding: 5px;
+      cursor: pointer;
+    }
 
-  .back-button:hover {
-    background: rgb(241, 245, 255);
-  }
+    .back-button:hover {
+      background: rgb(241, 245, 255);
+    }
 
-  .entry {
-    background: #fff;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  }
-</style>
+    #responseBox {
+      font-family: monospace;
+      background: #1e1e1e;
+      color: #00ff66;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      margin-top: 1rem;
+      box-shadow: inset 0 0 6px rgba(0,255,0,0.2);
+    }
+  </style>
 </head>
 
-<button class="back-button" onclick="window.location.href='index.html'">⬅ Back to Home</button>
+<body>
+  <h2>Admin: Add Product</h2>
 
-<form id="productForm">
-  <input placeholder="Name" />
-  <input placeholder="Price" type="number" />
-  <input placeholder="Category" />
-  <input placeholder="Stock" type="number" />
-  <button type="submit">Create Product</button>
-</form>
+  <button class="back-button" onclick="window.location.href='index.html'">⬅ Back to Home</button>
 
-<script>
-const token = localStorage.getItem('token');
+  <form id="productForm">
+    <input type="text" placeholder="Product Name" required />
+    <input type="number" placeholder="Price (₹)" required />
+    <input type="number" placeholder="Stock Quantity" required />
+    <input type="text" placeholder="Category" required />
+    <button type="submit">Add Product</button>
+  </form>
 
-document.getElementById('productForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const [name, price, category, stock] = [...e.target].map(el => el.value);
+  <pre id="responseBox">Awaiting product submission...</pre>
 
-  await fetch('http://localhost:5000/products', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({ name, price: +price, category, stock: +stock })
-  });
-  alert("Product added!");
-});
-</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('productForm');
+      const responseBox = document.getElementById('responseBox');
+      const token = localStorage.getItem('token');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = form.elements[0].value;
+        const price = form.elements[1].value;
+        const stock = form.elements[2].value;
+        const category = form.elements[3].value;
+
+        responseBox.textContent = '⌛ Sending product data...';
+
+        try {
+          const res = await fetch('https://adaptnxt-ecommerce.onrender.com/products', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              name,
+              price: +price,
+              stock: +stock,
+              category
+            })
+          });
+
+          const data = await res.json();
+          responseBox.textContent = res.ok
+            ? `✅ Product "${data.name}" added successfully`
+            : `❌ Failed: ${data.message || 'Validation error'}`;
+        } catch (err) {
+          responseBox.textContent = `⚠️ Error:\n${err.message}`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
