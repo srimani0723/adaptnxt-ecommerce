@@ -11,14 +11,28 @@ exports.getProducts = async (req, res) => {
     const total = await Product.countDocuments(query);
     const totalPages = Math.ceil(total / limit);
 
-    const products = await Product.find(query)
-      .sort(sort || '')  // Example: ?sort=price or ?sort=-price
+    let queryExec = Product.find(query)
       .skip((page - 1) * limit)
       .limit(Number(limit));
 
-    res.json({ total, page: Number(page), totalPages, products });
+    // ✅ Only apply sort if it's a non-empty string
+    if (sort && typeof sort === 'string' && sort.trim() !== '') {
+      queryExec = queryExec.sort(sort);
+    }
+
+    const products = await queryExec;
+
+    res.json({
+      total,
+      page: Number(page),
+      totalPages,
+      products
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch products', details: err.message });
+    res.status(500).json({
+      error: 'Failed to fetch products',
+      details: err.message
+    });
   }
 };
 
