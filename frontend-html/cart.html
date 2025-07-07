@@ -119,16 +119,17 @@
 
       window.removeItem = async (id) => {
         responseBox.textContent = '⌛ Removing item...';
-        try {
-          await fetch(`https://adaptnxt-ecommerce.onrender.com/cart/${id}`, {
+        // try {
+          const a = await fetch(`https://adaptnxt-ecommerce.onrender.com/cart/${id}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` }
           });
+          console.log(await a.json())
           responseBox.textContent = `🗑️ Item removed. Refreshing cart...`;
           loadCart();
-        } catch (err) {
-          responseBox.textContent = `⚠️ Error removing item:\n${err.message}`;
-        }
+        // } catch (err) {
+        //   responseBox.textContent = `⚠️ Error removing item:\n${err.message}`;
+        // }
       };
 
       loadCart();

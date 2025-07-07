@@ -25,6 +25,9 @@ npm run dev
 ```
 
 ## 🧪 Testing Routes with HTML Forms
+### Deployed Link
+- Frontend: [Netlify Link](https://adaptnxt-ecommerce-test.netlify.app/)
+- Backend: [Render Link](https://adaptnxt-ecommerce.onrender.com)
 
 | File                 | Route Tested      | Description                      |
 |----------------------|-------------------|----------------------------------|
